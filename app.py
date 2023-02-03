@@ -15,7 +15,6 @@ toolbar = DebugToolbarExtension(app)
 
 # Serialize data so that we could use jsonify to convert ot json data
 
-
 @app.route('/api/cupcakes')
 def get_cupcakes():
     '''Get data about all cupcakes and respond with JSON like: 
@@ -54,3 +53,30 @@ def create_cupcake():
     serialized = new_cupcake.serialize()
     
     return (jsonify(cupcake = serialized),201)
+
+@app.route('/api/cupcakes/<int:id>', methods = ['PATCH'])
+def update_cupcake(id):
+    '''Update cupcake details and Respond with JSON of the newly-updated 
+    cupcake, like this: {cupcake: {id, flavor, size, rating, image}}'''
+    
+    cupcake = Cupcake.query.get_or_404(id)
+    cupcake.flavor = request.json.get('flavor', cupcake.flavor)
+    cupcake.size = request.json.get('size', cupcake.size)
+    cupcake.rating = request.json.get('rating', cupcake.rating)
+    cupcake.image = request.json.get('image', cupcake.image)
+    
+    
+    db.session.add(cupcake)
+    db.session.commit()
+    serialized = cupcake.serialize()
+    
+    return jsonify(cupcake=serialized)
+
+@app.route('/api/cupcakes/<int:id>', methods=['DELETE'])
+def delete_cupcake(id):
+    '''Delete a cupcake and Respond with JSON of {message: "Deleted"}'''
+    
+    cupcake = Cupcake.query.get_or_404(id)
+    db.session.delete(cupcake)
+    db.session.commit()
+    return jsonify(message="Deleted")
