@@ -1,5 +1,5 @@
 """Flask app for Cupcakes"""
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, Cupcake
 
@@ -14,6 +14,12 @@ connect_db(app)
 toolbar = DebugToolbarExtension(app)
 
 # Serialize data so that we could use jsonify to convert ot json data
+
+@app.route('/')
+def homepage():
+    '''Show homepage'''
+    
+    return render_template('index.html')
 
 @app.route('/api/cupcakes')
 def get_cupcakes():
