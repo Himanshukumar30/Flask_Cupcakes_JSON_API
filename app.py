@@ -1,7 +1,7 @@
 """Flask app for Cupcakes"""
 from flask import Flask, jsonify, request
 from flask_debugtoolbar import DebugToolbarExtension
-from models import connect_db, Cupcake
+from models import db, connect_db, Cupcake
 
 app = Flask(__name__)
 app.app_context().push() 
@@ -14,33 +14,43 @@ connect_db(app)
 toolbar = DebugToolbarExtension(app)
 
 # Serialize data so that we could use jsonify to convert ot json data
-def serialize(self):
-     return {
-        "id": self.id,
-        'flavor': self.flavor, 
-        'size': self.size, 
-        'rating': self.rating, 
-        'image': self.image
-    }
+
 
 @app.route('/api/cupcakes')
 def get_cupcakes():
-    cupcakes = Cupcake.query.all
-    serialized = [serialize(cupcake) for cupcake in cupcakes]
+    '''Get data about all cupcakes and respond with JSON like: 
+    {cupcakes: [{id, flavor, size, rating, image}, ...]}.'''
+    
+    cupcakes = Cupcake.query.all()
+    serialized = [cupcake.serialize() for cupcake in cupcakes]
     return jsonify(cupcakes = serialized)
 
 @app.route('/api/cupcakes/<int:id>')
 def get_cupcake(id):
+    '''Get data of a cupcake and respond with JSON like: 
+    {cupcake: {id, flavor, size, rating, image}}'''
+    
     cupcake = Cupcake.query.get_or_404(id)
-    serialized = serialize(cupcake)
-    return jsonify(serialized)
+    serialized = cupcake.serialize()
+    return jsonify(cupcake = serialized)
 
 @app.route('/api/cupcakes', methods = ['POST'])
 def create_cupcake():
-    flavor = request.json(['flavor'])
-    size = request.json(['size'])
-    rating = request.json(['rating'])
-    image = request.json(['image'])
+    '''Create new cupcake and respond with json: 
+    {cupcake: {id, flavor, size, rating, image}}'''
+    
+    data = request.json
+    
+    flavor = data['flavor']
+    size = data['size']
+    rating = data['rating']
+    image = data['image'] or None
+    
     new_cupcake = Cupcake(flavor=flavor, size=size, rating=rating, image=image)
-    serialized = serialize(new_cupcake)
-    return (jsonify(serialized),201)
+    
+    db.session.add(new_cupcake)
+    db.session.commit()
+    
+    serialized = new_cupcake.serialize()
+    
+    return (jsonify(cupcake = serialized),201)
