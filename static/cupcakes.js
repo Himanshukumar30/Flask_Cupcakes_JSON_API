@@ -26,7 +26,7 @@ async function displayCupcakes() {
 
 // Handle add new cupcake form
 $("#new-cupcake-form").on("submit", async function addNewCupcake(e) {
-  e.preventdefault();
+  e.preventDefault();
   let flavor = $("#form-flavor").val();
   let size = $("#form-size").val();
   let rating = $("#form-rating").val();
